@@ -15,7 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(cors({
-  origin: "https://your-frontend-url.onrender.com"
+  origin: "https://cognia-ai-app.onrender.com",
+  credentials: true
 }));
 
 // Health check
