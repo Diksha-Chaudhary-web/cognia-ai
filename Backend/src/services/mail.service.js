@@ -7,19 +7,30 @@ const hasMailConfig = Boolean(
     process.env.GOOGLE_CLIENT_ID
 );
 
-const transporter = hasMailConfig ? nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        type: 'OAuth2',
-        user: process.env.GOOGLE_USER,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
-        clientId: process.env.GOOGLE_CLIENT_ID
-    }
-}) : null;
+let transporter = null;
 
-if (!transporter) {
-    console.warn("Email transporter is disabled. Missing Google mail environment variables.");
+if (hasMailConfig) {
+    transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            type: 'OAuth2',
+            user: process.env.GOOGLE_USER,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+            clientId: process.env.GOOGLE_CLIENT_ID
+        }
+    });
+    
+    // Verify connection on startup
+    transporter.verify((error, success) => {
+        if (error) {
+            console.error("❌ Email transporter verification failed:", error.message);
+        } else {
+            console.log("✅ Email transporter is ready");
+        }
+    });
+} else {
+    console.warn("⚠️ Email transporter is disabled. Missing Google mail environment variables.");
 }
 
 
@@ -36,6 +47,13 @@ export async function sendEmail({ to, subject, html, text }) {
         text
     };
 
-    const details = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", details);
+    try {
+        const details = await transporter.sendMail(mailOptions);
+        console.log("✅ Email sent successfully to:", to);
+        return details;
+    } catch (error) {
+        console.error("❌ Failed to send email:", error.message);
+        console.error("Error code:", error.code);
+        throw error;
+    }
 }
