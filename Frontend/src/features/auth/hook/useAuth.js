@@ -2,6 +2,19 @@ import { useDispatch } from "react-redux";
 import { register, login, getMe } from "../service/auth.api";
 import { setUser, setLoading, setError } from "../auth.slice";
 
+function extractErrorMessage(error, fallbackMessage) {
+    const responseData = error.response?.data;
+
+    if (responseData?.message) {
+        return responseData.message;
+    }
+
+    if (Array.isArray(responseData?.errors) && responseData.errors.length > 0) {
+        return responseData.errors[ 0 ]?.msg || fallbackMessage;
+    }
+
+    return fallbackMessage;
+}
 
 export function useAuth() {
 
@@ -15,7 +28,7 @@ export function useAuth() {
             const data = await register({ email, username, password })
             return data
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || "Registration failed"))
+            dispatch(setError(extractErrorMessage(error, "Registration failed")))
             return null
         } finally {
             dispatch(setLoading(false))
@@ -30,7 +43,7 @@ export function useAuth() {
             dispatch(setUser(data.user))
             return data
         } catch (err) {
-            dispatch(setError(err.response?.data?.message || "Login failed"))
+            dispatch(setError(extractErrorMessage(err, "Login failed")))
             return null
         } finally {
             dispatch(setLoading(false))

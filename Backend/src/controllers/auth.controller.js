@@ -12,7 +12,6 @@ const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PO
  * @body { username, email, password }
  */
 export async function register(req, res) {
-
     const { username, email, password } = req.body;
 
     const isUserAlreadyExists = await userModel.findOne({
@@ -20,8 +19,10 @@ export async function register(req, res) {
     })
 
     if (isUserAlreadyExists) {
+        const duplicateField = isUserAlreadyExists.email === email ? "email" : "username";
+
         return res.status(400).json({
-            message: "User with this email or username already exists",
+            message: `User with this ${duplicateField} already exists`,
             success: false,
             err: "User already exists"
         })
@@ -57,21 +58,33 @@ export async function register(req, res) {
         email: user.email,
     }, process.env.JWT_SECRET)
 
-    await sendEmail({
-        to: email,
-        subject: "Welcome to Perplexity!",
-        html: `
-                <p>Hi ${username},</p>
-                <p>Thank you for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
-                <p>Please verify your email address by clicking the link below:</p>
-                <a href="${backendUrl}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
-                <p>If you did not create an account, please ignore this email.</p>
-                <p>Best regards,<br>The Perplexity Team</p>
-        `
-    })
+    try {
+        await sendEmail({
+            to: email,
+            subject: "Welcome to Perplexity!",
+            html: `
+                    <p>Hi ${username},</p>
+                    <p>Thank you for registering at <strong>Perplexity</strong>. We're excited to have you on board!</p>
+                    <p>Please verify your email address by clicking the link below:</p>
+                    <a href="${backendUrl}/api/auth/verify-email?token=${emailVerificationToken}">Verify Email</a>
+                    <p>If you did not create an account, please ignore this email.</p>
+                    <p>Best regards,<br>The Perplexity Team</p>
+            `
+        })
+    } catch (error) {
+        await userModel.findByIdAndDelete(user._id);
+
+        console.error("Registration email failed:", error);
+
+        return res.status(500).json({
+            message: "Registration failed because the verification email could not be sent. Please check the mail configuration and try again.",
+            success: false,
+            err: error.message
+        });
+    }
 
     res.status(201).json({
-        message: "User registered successfully",
+        message: "User registered successfully. Please check your email to verify your account.",
         success: true,
         user: {
             id: user._id,
@@ -80,9 +93,6 @@ export async function register(req, res) {
             verified: user.verified
         }
     });
-
-
-
 }
 
 /**
