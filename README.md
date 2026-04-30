@@ -118,12 +118,6 @@ http://localhost:5173
 4. Refresh the page and confirm chats still exist
 5. Check backend health at `http://localhost:3000/api/health`
 
-## Notes
-
-- If the Google mail env vars are missing, local signup still works and users are auto-verified.
-- If both `GEMINI_API_KEY` and `MISTRAL_API_KEY` are missing, the app runs but AI replies will not work.
-- `TAVILY_API_KEY` is needed for internet-backed or latest-information answers.
-- The frontend runs on `http://localhost:5173` and the backend runs on `http://localhost:3000`.
 
 ## Deployment
 
@@ -156,16 +150,4 @@ GOOGLE_CLIENT_SECRET=
 GOOGLE_REFRESH_TOKEN=
 ```
 
-## Important Vercel Caveat
 
-This project includes `socket.io`, but Vercel Functions do not support acting as a WebSocket server. The app can still work for normal REST-based flows, but real-time socket behavior may not work properly on Vercel.
-
-If you need full socket support in production, consider:
-
-- Render
-- Railway
-- A VPS
-
-## Security
-
-Do not commit real secrets, API keys, database URIs, or OAuth credentials into the repository. Keep them only in local `.env` files or your deployment provider's environment variable settings.
