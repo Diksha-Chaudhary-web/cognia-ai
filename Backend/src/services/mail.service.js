@@ -11,7 +11,9 @@ let transporter = null;
 
 if (hasMailConfig) {
     transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // use TLS
         auth: {
             type: 'OAuth2',
             user: process.env.GOOGLE_USER,
@@ -20,7 +22,7 @@ if (hasMailConfig) {
             clientId: process.env.GOOGLE_CLIENT_ID
         }
     });
-    
+
     // Verify connection on startup
     transporter.verify((error, success) => {
         if (error) {
