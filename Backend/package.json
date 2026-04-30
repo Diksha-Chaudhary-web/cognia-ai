@@ -13,7 +13,7 @@
   "type": "module",
   "dependencies": {
     "@langchain/core": "^1.1.42",
-    "@langchain/google-genai": "^2.1.24",
+    "@langchain/google-genai": "^2.1.29",
     "@langchain/mistralai": "^1.0.7",
     "@tavily/core": "^0.7.2",
     "bcryptjs": "^3.0.3",
